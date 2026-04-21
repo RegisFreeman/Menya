@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menya</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <section class="hero">
+    <h1>
+      Menya – Discover Rwanda’s Knowledge,<br />
+      History & Heritage
+    </h1>
+
+    <p>
+      Explore knowledge, trace your roots, and understand Rwanda’s story.
+    </p>
+
+    <div class="search-container">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search knowledge, families, history..."
+      />
+      <div id="results"></div>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="card" data-section="knowledge">Knowledge Base</div>
+    <div class="card" data-section="lineage">Family Lineage</div>
+    <div class="card" data-section="history">History & Heritage</div>
+  </section>
+
+  <section class="content-view hidden" id="contentView">
+    <button class="back-btn">← Back</button>
+    <h2 id="sectionTitle"></h2>
+    <div id="sectionContent"></div>
+  </section>
+
+  <!-- JS -->
+  <script src="script.js"></script>
+</body>
+</html>
+``
