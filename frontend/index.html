@@ -1,46 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Rwanda for All</title>
 
-  <!-- ✅ THIS IS THE MISSING PIECE -->
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
 
+  <!-- HERO -->
   <section class="hero">
     <h1>Rwanda for All</h1>
     <p>Preserving and transparently verifying Rwandan stories.</p>
 
-    <div class="identity-box" id="identityBox"></div>
-
-    <div class="actions">
-      <button id="loginBtn">Sign In</button>
-      <button id="logoutBtn">Sign Out</button>
-
-      <button id="newStoryBtn">Submit Story</button>
-      <button id="verifierDashboardBtn">Verifier Dashboard</button>
-      <button id="moderatorDashboardBtn">Moderator Dashboard</button>
+    <div class="auth-buttons">
+      <button id="submitStoryBtn">Submit Story</button>
     </div>
   </section>
 
+  <!-- CATEGORY CARDS -->
   <section class="cards">
-    <div class="card" data-category="Knowledge Base">Knowledge Base</div>
+    <div class="card" data-category="Stories">Stories</div>
     <div class="card" data-category="History & Heritage">History & Heritage</div>
     <div class="card" data-category="Family Lineage">Family Lineage</div>
   </section>
 
-  <section id="contentView" class="content-view hidden">
-    <button class="back-btn">← Back</button>
+  <!-- STORY DISPLAY -->
+  <section id="contentView" class="hidden">
+    <button id="backBtn">← Back</button>
     <h2 id="sectionTitle"></h2>
     <div id="sectionContent"></div>
   </section>
 
-  <!-- ✅ JS MUST ALSO BE LINKED PROPERLY -->
-  <script src="./script.js"></script>
+  <!-- ✅ NEW: SUBMIT FORM -->
+  <section id="submitStoryView" class="hidden">
+    <button id="submitBackBtn">← Back</button>
 
+    <h2>Submit a Story</h2>
+
+    <form id="storyForm" enctype="multipart/form-data">
+      <input type="text" name="title" placeholder="Story title" required />
+      <input type="text" name="category" placeholder="Category" required />
+      <textarea name="content" placeholder="Your story" required></textarea>
+
+      <label>Storyteller Photo (optional)</label>
+      <input type="file" name="storyteller_photo" />
+
+      <button type="submit">Submit</button>
+    </form>
+  </section>
+
+  <script src="script.js"></script>
 </body>
-</html>

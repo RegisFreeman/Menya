@@ -1,146 +1,143 @@
-console.log("Rwanda for All — Phase 8 ✅");
+const API_URL = "http://127.0.0.1:8000/api/stories/";
 
-/* ================= AUTH STATE ================= */
+console.log("API URL:", API_URL);
 
-/*
-Simulated authentication.
-In Phase 9, this becomes:
-- JWT
-- API login
-- Session cookies
-*/
-
-let sessionUser = JSON.parse(localStorage.getItem("sessionUser"));
-
-const identityBox = document.getElementById("identityBox");
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-
-const newStoryBtn = document.getElementById("newStoryBtn");
-const verifierBtn = document.getElementById("verifierDashboardBtn");
-const moderatorBtn = document.getElementById("moderatorDashboardBtn");
-
-/* ---------------- Render Identity ---------------- */
-
-function renderIdentity() {
-  if (!sessionUser) {
-    identityBox.innerHTML = `<strong>Not signed in</strong>`;
-    return;
-  }
-
-  identityBox.innerHTML = `
-    <strong>Signed in as:</strong> ${sessionUser.name}<br/>
-    <strong>Role:</strong> ${sessionUser.role.replace("_", " ")}<br/>
-    <strong>Nationality Verified:</strong>
-    ${sessionUser.nationalityVerified ? "Yes" : "No"}
-  `;
-}
-
-/* ---------------- Role Permissions ---------------- */
-
-function applyPermissions() {
-  loginBtn.style.display = sessionUser ? "none" : "inline-block";
-  logoutBtn.style.display = sessionUser ? "inline-block" : "none";
-
-  newStoryBtn.style.display =
-    sessionUser && sessionUser.role === "verified_rwandan"
-      ? "inline-block"
-      : "none";
-
-  verifierBtn.style.display =
-    sessionUser && sessionUser.role === "verifier"
-      ? "inline-block"
-      : "none";
-
-  moderatorBtn.style.display =
-    sessionUser && sessionUser.role === "moderator"
-      ? "inline-block"
-      : "none";
-}
-
-/* ---------------- LOGIN / LOGOUT ---------------- */
-
-loginBtn.onclick = () => {
-  // Mock sign-in
-  sessionUser = {
-    id: "user-001",
-    name: "Sample User",
-    role: "verified_rwandan", // change to verifier/moderator to test
-    nationalityVerified: true
-  };
-
-  localStorage.setItem("sessionUser", JSON.stringify(sessionUser));
-  renderIdentity();
-  applyPermissions();
-};
-
-logoutBtn.onclick = () => {
-  sessionUser = null;
-  localStorage.removeItem("sessionUser");
-  renderIdentity();
-  applyPermissions();
-};
-
-/* Init */
-renderIdentity();
-applyPermissions();
-
-/* ================= STORIES ================= */
-
-let stories = [];
+/* ==============================
+   ELEMENTS
+============================== */
 const hero = document.querySelector(".hero");
 const cards = document.querySelector(".cards");
-const view = document.getElementById("contentView");
-const titleEl = document.getElementById("sectionTitle");
-const contentEl = document.getElementById("sectionContent");
-const backBtn = document.querySelector(".back-btn");
 
-/* Load stories */
-fetch("./data/stories.json")
-  .then(res => res.json())
-  .then(baseStories => {
-    const userStories = JSON.parse(localStorage.getItem("userStories") || "[]");
-    stories = [...baseStories, ...userStories];
-  });
+const contentView = document.getElementById("contentView");
+const submitView = document.getElementById("submitStoryView");
 
-/* Category navigation */
+const sectionTitle = document.getElementById("sectionTitle");
+const sectionContent = document.getElementById("sectionContent");
+
+const submitBtn = document.getElementById("submitStoryBtn");
+const backBtn = document.getElementById("backBtn");
+const submitBackBtn = document.getElementById("submitBackBtn");
+
+const storyForm = document.getElementById("storyForm");
+
+let stories = [];
+
+/* ==============================
+   LOAD STORIES
+============================== */
+function loadStories(callback) {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      stories = data;
+      if (callback) callback();
+    })
+    .catch(err => console.error("Load error:", err));
+}
+
+/* ==============================
+   RENDER STORIES
+============================== */
+function renderStories(list, title) {
+  hero.classList.add("hidden");
+  cards.classList.add("hidden");
+  submitView.classList.add("hidden");
+
+  contentView.classList.remove("hidden");
+  sectionTitle.textContent = title;
+
+  sectionContent.innerHTML = list.length
+    ? list.map(story => `
+      <div class="story">
+        <h3>${story.title}</h3>
+        <p>${story.content}</p>
+        <small>Status: ${story.status}</small>
+      </div>
+    `).join("")
+    : "<p>No stories yet.</p>";
+}
+
+/* ==============================
+   NAVIGATION
+============================== */
+submitBtn.onclick = () => {
+  hero.classList.add("hidden");
+  cards.classList.add("hidden");
+  contentView.classList.add("hidden");
+  submitView.classList.remove("hidden");
+};
+
+backBtn.onclick = () => {
+  contentView.classList.add("hidden");
+  hero.classList.remove("hidden");
+  cards.classList.remove("hidden");
+};
+
+submitBackBtn.onclick = () => {
+  submitView.classList.add("hidden");
+  hero.classList.remove("hidden");
+  cards.classList.remove("hidden");
+};
+
+/* ==============================
+   CATEGORY FILTER
+============================== */
 document.querySelectorAll(".card").forEach(card => {
   card.onclick = () => {
     const category = card.dataset.category;
 
-    hero.classList.add("hidden");
-    cards.classList.add("hidden");
-    view.classList.remove("hidden");
-
-    titleEl.textContent = category;
-    contentEl.innerHTML = stories
-      .filter(s => s.category === category)
-      .map(s => `
-        <div class="story-item" onclick="openStory('${s.id}')">
-          <strong>${s.title}</strong>
-          <div class="status">${s.status.toUpperCase()}</div>
-        </div>
-      `).join("");
+    loadStories(() => {
+      renderStories(
+        category === "Stories"
+          ? stories
+          : stories.filter(s => s.category === category),
+        category
+      );
+    });
   };
 });
 
-/* Open story */
-window.openStory = function (id) {
-  const s = stories.find(st => st.id === id);
-  if (!s) return;
+/* ==============================
+   ✅ CLEAN STABLE SUBMIT HANDLER
+============================== */
+storyForm.addEventListener("submit", function (e) {
+  e.preventDefault();
 
-  titleEl.textContent = s.title;
-  contentEl.innerHTML = `
-    <div class="status">Status: ${s.status.toUpperCase()}</div>
-    <p><strong>Category:</strong> ${s.category}</p>
-    <p><strong>Created:</strong> ${new Date(s.created_at).toLocaleString()}</p>
-    <p style="margin-top:16px">${s.content}</p>
-  `;
-};
+  console.log("✅ FORM EVENT TRIGGERED");
 
-/* Back */
-backBtn.onclick = () => {
-  view.classList.add("hidden");
-  hero.classList.remove("hidden");
-  cards.classList.remove("hidden");
-};
+  const formData = new FormData(this);
+
+  const btn = this.querySelector("button[type='submit']");
+  btn.innerText = "Submitting...";
+  btn.disabled = true;
+
+  console.log("➡️ Sending request to:", API_URL);
+
+  fetch(API_URL, {
+    method: "POST",
+    body: formData
+  })
+    .then(res => {
+      console.log("⬅️ STATUS:", res.status);
+
+      if (res.status === 201) {
+        alert("✅ Story saved successfully");
+        this.reset();
+      } else {
+        alert("❌ Server error: " + res.status);
+      }
+    })
+    .catch(err => {
+      console.error("❌ FETCH ERROR:", err);
+      alert("❌ Network issue");
+    })
+    .finally(() => {
+      btn.innerText = "Submit";
+      btn.disabled = false;
+    });
+});
+
+/* ==============================
+   INIT
+============================== */
+loadStories();
