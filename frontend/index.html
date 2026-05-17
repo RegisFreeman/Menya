@@ -3,48 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Menya</title>
+  <title>Rwanda for All</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- ✅ THIS IS THE MISSING PIECE -->
+  <link rel="stylesheet" href="./styles.css">
 </head>
 
 <body>
 
   <section class="hero">
-    <h1>
-      Menya – Discover Rwanda’s Knowledge,<br />
-      History & Heritage
-    </h1>
+    <h1>Rwanda for All</h1>
+    <p>Preserving and transparently verifying Rwandan stories.</p>
 
-    <p>
-      Explore knowledge, trace your roots, and understand Rwanda’s story.
-    </p>
+    <div class="identity-box" id="identityBox"></div>
 
-    <div class="search-container">
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Search knowledge, families, history..."
-      />
-      <div id="results"></div>
+    <div class="actions">
+      <button id="loginBtn">Sign In</button>
+      <button id="logoutBtn">Sign Out</button>
+
+      <button id="newStoryBtn">Submit Story</button>
+      <button id="verifierDashboardBtn">Verifier Dashboard</button>
+      <button id="moderatorDashboardBtn">Moderator Dashboard</button>
     </div>
   </section>
 
   <section class="cards">
-    <div class="card" data-section="knowledge">Knowledge Base</div>
-    <div class="card" data-section="lineage">Family Lineage</div>
-    <div class="card" data-section="history">History & Heritage</div>
+    <div class="card" data-category="Knowledge Base">Knowledge Base</div>
+    <div class="card" data-category="History & Heritage">History & Heritage</div>
+    <div class="card" data-category="Family Lineage">Family Lineage</div>
   </section>
 
-  <section class="content-view hidden" id="contentView">
+  <section id="contentView" class="content-view hidden">
     <button class="back-btn">← Back</button>
     <h2 id="sectionTitle"></h2>
     <div id="sectionContent"></div>
   </section>
 
-  <!-- JS -->
-  <script src="script.js"></script>
+  <!-- ✅ JS MUST ALSO BE LINKED PROPERLY -->
+  <script src="./script.js"></script>
+
 </body>
 </html>
-``

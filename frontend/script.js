@@ -1,113 +1,146 @@
-console.log("Menya script loaded ✅");
+console.log("Rwanda for All — Phase 8 ✅");
 
-let knowledgeBase = [];
+/* ================= AUTH STATE ================= */
 
-/* =========================
-   ELEMENTS
-========================= */
-const searchInput = document.getElementById("searchInput");
-const resultsContainer = document.getElementById("results");
+/*
+Simulated authentication.
+In Phase 9, this becomes:
+- JWT
+- API login
+- Session cookies
+*/
 
-const heroSection = document.querySelector(".hero");
-const cardsSection = document.querySelector(".cards");
-const contentView = document.getElementById("contentView");
-const sectionTitle = document.getElementById("sectionTitle");
-const sectionContent = document.getElementById("sectionContent");
-const backBtn = document.querySelector(".back-btn");
+let sessionUser = JSON.parse(localStorage.getItem("sessionUser"));
 
-/* =========================
-   LOAD DATA
-========================= */
-fetch("./data/articles.json")
-  .then(response => response.json())
-  .then(data => {
-    knowledgeBase = data;
-    console.log("Articles loaded ✅");
-  })
-  .catch(error => {
-    console.error("Failed to load articles:", error);
-  });
+const identityBox = document.getElementById("identityBox");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
-/* =========================
-   VIEW HELPERS
-========================= */
-function showArticle(article) {
-  heroSection.classList.add("hidden");
-  cardsSection.classList.add("hidden");
+const newStoryBtn = document.getElementById("newStoryBtn");
+const verifierBtn = document.getElementById("verifierDashboardBtn");
+const moderatorBtn = document.getElementById("moderatorDashboardBtn");
 
-  sectionTitle.textContent = article.title;
-  sectionContent.innerHTML = `
-    <p><strong>Category:</strong> ${article.category}</p>
-    <p style="margin-top: 16px;">${article.content}</p>
-  `;
+/* ---------------- Render Identity ---------------- */
 
-  contentView.classList.remove("hidden");
-}
-
-/* =========================
-   SEARCH
-========================= */
-searchInput.addEventListener("input", () => {
-  const query = searchInput.value.toLowerCase();
-  resultsContainer.innerHTML = "";
-
-  if (!query || knowledgeBase.length === 0) return;
-
-  const matches = knowledgeBase.filter(article =>
-    article.title.toLowerCase().includes(query) ||
-    article.category.toLowerCase().includes(query) ||
-    article.content.toLowerCase().includes(query)
-  );
-
-  if (matches.length === 0) {
-    resultsContainer.innerHTML =
-      '<p class="no-results">No results found</p>';
+function renderIdentity() {
+  if (!sessionUser) {
+    identityBox.innerHTML = `<strong>Not signed in</strong>`;
     return;
   }
 
-  matches.forEach(article => {
-    const result = document.createElement("div");
-    result.className = "result-item";
-    result.innerHTML = `
-      <strong>${article.title}</strong>
-      <span>${article.category}</span>
-      <p>${article.content.substring(0, 80)}...</p>
-    `;
+  identityBox.innerHTML = `
+    <strong>Signed in as:</strong> ${sessionUser.name}<br/>
+    <strong>Role:</strong> ${sessionUser.role.replace("_", " ")}<br/>
+    <strong>Nationality Verified:</strong>
+    ${sessionUser.nationalityVerified ? "Yes" : "No"}
+  `;
+}
 
-    result.addEventListener("click", () => showArticle(article));
-    resultsContainer.appendChild(result);
-  });
-});
+/* ---------------- Role Permissions ---------------- */
 
-/* =========================
-   CARD NAVIGATION
-========================= */
-const sections = {
-  knowledge: "Knowledge Base",
-  lineage: "Family Lineage",
-  history: "History & Heritage"
+function applyPermissions() {
+  loginBtn.style.display = sessionUser ? "none" : "inline-block";
+  logoutBtn.style.display = sessionUser ? "inline-block" : "none";
+
+  newStoryBtn.style.display =
+    sessionUser && sessionUser.role === "verified_rwandan"
+      ? "inline-block"
+      : "none";
+
+  verifierBtn.style.display =
+    sessionUser && sessionUser.role === "verifier"
+      ? "inline-block"
+      : "none";
+
+  moderatorBtn.style.display =
+    sessionUser && sessionUser.role === "moderator"
+      ? "inline-block"
+      : "none";
+}
+
+/* ---------------- LOGIN / LOGOUT ---------------- */
+
+loginBtn.onclick = () => {
+  // Mock sign-in
+  sessionUser = {
+    id: "user-001",
+    name: "Sample User",
+    role: "verified_rwandan", // change to verifier/moderator to test
+    nationalityVerified: true
+  };
+
+  localStorage.setItem("sessionUser", JSON.stringify(sessionUser));
+  renderIdentity();
+  applyPermissions();
 };
 
-document.querySelectorAll(".card").forEach(card => {
-  card.addEventListener("click", () => {
-    heroSection.classList.add("hidden");
-    cardsSection.classList.add("hidden");
+logoutBtn.onclick = () => {
+  sessionUser = null;
+  localStorage.removeItem("sessionUser");
+  renderIdentity();
+  applyPermissions();
+};
 
-    sectionTitle.textContent = sections[card.dataset.section];
-    sectionContent.innerHTML =
-      "<p>Use the search bar to explore articles in this section.</p>";
+/* Init */
+renderIdentity();
+applyPermissions();
 
-    contentView.classList.remove("hidden");
+/* ================= STORIES ================= */
+
+let stories = [];
+const hero = document.querySelector(".hero");
+const cards = document.querySelector(".cards");
+const view = document.getElementById("contentView");
+const titleEl = document.getElementById("sectionTitle");
+const contentEl = document.getElementById("sectionContent");
+const backBtn = document.querySelector(".back-btn");
+
+/* Load stories */
+fetch("./data/stories.json")
+  .then(res => res.json())
+  .then(baseStories => {
+    const userStories = JSON.parse(localStorage.getItem("userStories") || "[]");
+    stories = [...baseStories, ...userStories];
   });
+
+/* Category navigation */
+document.querySelectorAll(".card").forEach(card => {
+  card.onclick = () => {
+    const category = card.dataset.category;
+
+    hero.classList.add("hidden");
+    cards.classList.add("hidden");
+    view.classList.remove("hidden");
+
+    titleEl.textContent = category;
+    contentEl.innerHTML = stories
+      .filter(s => s.category === category)
+      .map(s => `
+        <div class="story-item" onclick="openStory('${s.id}')">
+          <strong>${s.title}</strong>
+          <div class="status">${s.status.toUpperCase()}</div>
+        </div>
+      `).join("");
+  };
 });
 
-/* =========================
-   BACK
-========================= */
-backBtn.addEventListener("click", () => {
-  contentView.classList.add("hidden");
-  heroSection.classList.remove("hidden");
-  cardsSection.classList.remove("hidden");
-  searchInput.value = "";
-  resultsContainer.innerHTML = "";
-});
+/* Open story */
+window.openStory = function (id) {
+  const s = stories.find(st => st.id === id);
+  if (!s) return;
+
+  titleEl.textContent = s.title;
+  contentEl.innerHTML = `
+    <div class="status">Status: ${s.status.toUpperCase()}</div>
+    <p><strong>Category:</strong> ${s.category}</p>
+    <p><strong>Created:</strong> ${new Date(s.created_at).toLocaleString()}</p>
+    <p style="margin-top:16px">${s.content}</p>
+  `;
+};
+
+/* Back */
+backBtn.onclick = () => {
+  view.classList.add("hidden");
+  hero.classList.remove("hidden");
+  cards.classList.remove("hidden");
+};
