@@ -1,7 +1,5 @@
 const API_URL = "http://127.0.0.1:8000/api/stories/";
 
-console.log("API URL:", API_URL);
-
 /* ==============================
    ELEMENTS
 ============================== */
@@ -21,6 +19,23 @@ const submitBackBtn = document.getElementById("submitBackBtn");
 const storyForm = document.getElementById("storyForm");
 
 let stories = [];
+let currentView = "home";
+
+/* ==============================
+   UTIL
+============================== */
+function showToast(message) {
+  document.querySelectorAll(".toast").forEach(t => t.remove());
+
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerText = message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 50);
+  setTimeout(() => toast.remove(), 3000);
+}
 
 /* ==============================
    LOAD STORIES
@@ -31,46 +46,99 @@ function loadStories(callback) {
     .then(data => {
       stories = data;
       if (callback) callback();
-    })
-    .catch(err => console.error("Load error:", err));
+    });
 }
 
 /* ==============================
-   RENDER STORIES
+   RENDER STORIES (GRID)
 ============================== */
 function renderStories(list, title) {
+  currentView = "stories";
+
   hero.classList.add("hidden");
   cards.classList.add("hidden");
   submitView.classList.add("hidden");
 
   contentView.classList.remove("hidden");
-  sectionTitle.textContent = title;
+  contentView.classList.add("fade");
 
-  sectionContent.innerHTML = list.length
-    ? list.map(story => `
-      <div class="story">
-        <h3>${story.title}</h3>
-        <p>${story.content}</p>
+  sectionTitle.textContent = title;
+  backBtn.style.display = "block";
+
+  if (!list.length) {
+    sectionContent.innerHTML = "<p>No stories yet.</p>";
+    return;
+  }
+
+  sectionContent.innerHTML = `
+    <div class="story-grid">
+      ${list.map((story, i) => `
+        <div class="story" data-index="${i}">
+          ${story.storyteller_photo ? `
+            <img src="${story.storyteller_photo}" class="story-img"/>
+          ` : ""}
+
+          <h3>${story.title}</h3>
+          <p>${story.content.substring(0, 100)}...</p>
+          <small>${story.status}</small>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  document.querySelectorAll(".story").forEach(card => {
+    card.onclick = () => openStory(list[card.dataset.index]);
+  });
+}
+
+/* ==============================
+   OPEN STORY
+============================== */
+function openStory(story) {
+  currentView = "story";
+
+  contentView.classList.remove("hidden");
+  contentView.classList.add("fade");
+
+  sectionTitle.innerHTML = `<h1>${story.title}</h1>`;
+
+  sectionContent.innerHTML = `
+    <div class="story-reader">
+
+      ${story.storyteller_photo ? `
+        <img src="${story.storyteller_photo}" class="story-main-img"/>
+      ` : ""}
+
+      <p class="story-content">${story.content}</p>
+
+      <div class="story-meta">
         <small>Status: ${story.status}</small>
       </div>
-    `).join("")
-    : "<p>No stories yet.</p>";
+
+    </div>
+  `;
 }
 
 /* ==============================
    NAVIGATION
 ============================== */
+backBtn.onclick = () => {
+  if (currentView === "story") {
+    renderStories(stories, "Stories");
+  } else {
+    contentView.classList.add("hidden");
+    hero.classList.remove("hidden");
+    cards.classList.remove("hidden");
+    backBtn.style.display = "none";
+    currentView = "home";
+  }
+};
+
 submitBtn.onclick = () => {
   hero.classList.add("hidden");
   cards.classList.add("hidden");
   contentView.classList.add("hidden");
   submitView.classList.remove("hidden");
-};
-
-backBtn.onclick = () => {
-  contentView.classList.add("hidden");
-  hero.classList.remove("hidden");
-  cards.classList.remove("hidden");
 };
 
 submitBackBtn.onclick = () => {
@@ -80,7 +148,7 @@ submitBackBtn.onclick = () => {
 };
 
 /* ==============================
-   CATEGORY FILTER
+   CATEGORY
 ============================== */
 document.querySelectorAll(".card").forEach(card => {
   card.onclick = () => {
@@ -98,46 +166,47 @@ document.querySelectorAll(".card").forEach(card => {
 });
 
 /* ==============================
-   ✅ CLEAN STABLE SUBMIT HANDLER
+   SUBMIT
 ============================== */
-storyForm.addEventListener("submit", function (e) {
+storyForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  console.log("✅ FORM EVENT TRIGGERED");
+  const btn = this.querySelector("button[type='submit']");
+  btn.disabled = true;
+  btn.innerText = "Submitting...";
 
   const formData = new FormData(this);
 
-  const btn = this.querySelector("button[type='submit']");
-  btn.innerText = "Submitting...";
-  btn.disabled = true;
-
-  console.log("➡️ Sending request to:", API_URL);
-
-  fetch(API_URL, {
-    method: "POST",
-    body: formData
-  })
-    .then(res => {
-      console.log("⬅️ STATUS:", res.status);
-
-      if (res.status === 201) {
-        alert("✅ Story saved successfully");
-        this.reset();
-      } else {
-        alert("❌ Server error: " + res.status);
-      }
-    })
-    .catch(err => {
-      console.error("❌ FETCH ERROR:", err);
-      alert("❌ Network issue");
-    })
-    .finally(() => {
-      btn.innerText = "Submit";
-      btn.disabled = false;
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: formData
     });
+
+    if (res.status === 201) {
+      showToast("✅ Story submitted");
+      this.reset();
+
+      submitView.classList.add("hidden");
+      hero.classList.remove("hidden");
+      cards.classList.remove("hidden");
+
+      loadStories();
+    } else {
+      showToast("❌ Error submitting story");
+    }
+
+  } catch {
+    showToast("❌ Network error");
+  }
+
+  btn.disabled = false;
+  btn.innerText = "Submit";
 });
 
 /* ==============================
    INIT
 ============================== */
+backBtn.style.display = "none";
 loadStories();
+``

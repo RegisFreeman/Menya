@@ -18,7 +18,7 @@ SECRET_KEY = 'django-insecure-change-this-in-production'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] # Allowed for local MVP network routing testing
 
 
 # =====================
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
     # Third-party
     'rest_framework',
+    'corsheaders',  # FIX: Allows Cross-Origin file uploads from Port 5500
 
     # Local apps
     'stories.apps.StoriesConfig',
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # FIX: Intercepts browser requests before standard patterns
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -137,10 +139,25 @@ USE_TZ = True
 
 
 # =====================
-# STATIC FILES
+# STATIC & MEDIA FILES CONFIGURATION
 # =====================
 
 STATIC_URL = 'static/'
+
+# FIX: Explicit directory routing to save uploaded files onto your local hard drive
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# =====================
+# CORS HEADERS CONFIGURATION
+# =====================
+
+# FIX: Authorizes your VS Code Live Server environment to make successful API POST calls
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+]
 
 
 # =====================

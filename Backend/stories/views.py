@@ -1,3 +1,4 @@
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -10,6 +11,10 @@ from .serializers import StorySerializer
 class StoryViewSet(ModelViewSet):
     queryset = Story.objects.all().order_by('-created_at')
     serializer_class = StorySerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    parser_classes = (MultiPartParser, FormParser)
+
 
     # ✅ Allow public submission (MVP requirement)
     def get_permissions(self):
